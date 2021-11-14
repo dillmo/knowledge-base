@@ -1,0 +1,30 @@
+#+TITLE: GDB
+
+* Debugging a C Program
+1. Compile with ggdb flag: ~cc -ggdb program.c~
+1. Start GDB: ~gdb a.out~
+2. Enter src layout: ~layout src~
+3. Use up and down arrow keys to navigate the source code
+4. Insert breakpoints: ~break [function name or line number]~
+5. Start the program: ~start~
+6. Inspect variable values: ~print varname~
+7. Step over (~next~) or into (~step~) instructions
+8. Use ~continue~ to run to the next breakpoint
+9. Use ~start~ to restart the program
+
+* Breakpoints
+- Use ~break [function name or line number]~ to insert a breakpoint
+- Use ~info break~ to list breakpoints. Note the numbers.
+- Use ~del [number]~ to delete a breakpoint (see ~info break~)
+
+* Inspecting Variables
+- When the program is paused, use ~print varname~ to inspect a variable's value
+- GDB can follow (~print ptr->child~) and dereference (~print &ptr~) pointers
+- To inspect a variable in a function's caller, use ~backtrace~ to view the call
+  stack (note the numbers) and ~frame [number]~ to inspect the relevant stack
+  frame. Then use ~print~ as usual.
+
+* Navigating the Program
+- Use ~next~ to step over a line of code without entering any functions it calls
+- Use ~step~ to step into a line of code, entering any functions it calls
+- Use ~continue~ to execute the program until the next breakpoint.

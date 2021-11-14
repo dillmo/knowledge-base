@@ -1,0 +1,13 @@
+#+TITLE: Treap
+
+* Definition
+A treap is a self-balancing binary search tree which is both a binary search
+tree and a min-heap. Each node in the tree is assigned a random priority, and
+rotations are used to keep the tree in heap order by these priorities. Thus, any
+time a node is added to the tree, it is as if it was added in random order.
+
+* Insertion
+1. Insert the node using the binary search tree insertion algorithm.
+2. Generate a random priority for the node.
+3. If the node's priority is less than its parent's priority, use the tree
+   rotation algorithm to swap it with its parent. Return to this step.

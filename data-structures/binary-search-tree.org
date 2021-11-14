@@ -1,0 +1,31 @@
+#+TITLE: Binary Search Tree
+
+* Definition
+A binary search tree is a tree where each node can have a left child and a right
+child. The left child is always less than the node, and the right child is
+always greater than or equal to the node. Binary search trees are suitable for
+storing large amounts of data (500 or more records). In the best case, a binary
+search tree is balanced such that any node in it can be reached in at most
+log2(n) steps, where n is the size of the tree. In the worst case, a node is
+reached in n steps.  Algorithms for automatically balancing binary search trees
+in order to avoid the worst case exist (see treaps).
+
+* Insertion
+1. Set x to the root node, y to the new node.
+2. If x is null, insert y in its place.
+3. If y is less than or equal to x, set x to its left child. Go to step 2.
+4. Set x to its right child. Go to step 2.
+
+* Left Rotation
+1. Set x to the parent node, y to its parent, and z to its right child.
+2. If x is y's left child, set y's left child to z. Go to step 4.
+3. Set y's right child to z.
+4. Set x's right child to z's left child.
+5. Set z's left child to x.
+
+* Right Rotation
+1. Set x to the parent node, y to its parent, and z to its right child.
+2. If x is y's left child, set y's left child to z. Go to step 4.
+3. Set y's right child to z.
+4. Set x's left child to z's right child.
+5. Set z's right child to x.

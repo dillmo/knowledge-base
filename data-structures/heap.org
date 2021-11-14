@@ -1,0 +1,7 @@
+#+TITLE: Heap
+
+* Definition
+A heap is a binary tree (each node has at most two children) which satisfies one
+of the following rules:
+- Each node is no greater than its children (min-heap)
+- Each node is no less than its children (max-heap)

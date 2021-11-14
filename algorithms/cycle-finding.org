@@ -1,0 +1,188 @@
+#+TITLE: Finding Cycles
+
+* Introduction
+Imagine you have a function f(x), which maps over the numbers 0–3. An example
+f(x) is represented by the following table.
+
+| x | f(x) |
+|---+------|
+| 0 |    1 |
+| 1 |    2 |
+| 2 |    3 |
+| 3 |    0 |
+This f(x) outputs 1 2 3 0 1 2 3 0…
+
+Another example f(x) is:
+
+| x | f(x) |
+|---+------|
+| 0 |    3 |
+| 1 |    0 |
+| 2 |    1 |
+| 3 |    1 |
+
+This f(x) outputs 3 1 0 3 1 0 3 1 0…
+
+If we increase the size of f(x) by 1 (i.e. have it map over 0–4), does it still
+repeat?
+
+Yes. Either the function will never reach the new number (4), or the new number
+will point to itself, or it will point to one of the previous numbers, which
+have already pointed to it. In each case, there is a cycle.
+
+So we can prove the following result inductively: If all functions f(x) of size
+n repeat, then so do all functions f(x) of size n + 1. Because f(x) of size 1
+repeats, all functions f(x) must also repeat. All that is necessary is for f(x)
+to map over a finite set of numbers.
+
+* Finding Cycles
+Finding cycles in functions like f(x) is a foundational technique in computer
+science. All the time, we use cycle-finding algorithms to judge the strength of
+random number generators, detect deadlocks, ensure trees are acyclic, catch
+infinite loops, and more. The computational difficulty of detecting large cycles
+is critical to robust cryptography. But the math behind finding cycles is simple
+enough that we can derive it here.
+
+First, some notation. Let's say define a sequence $X$ such that $f(X_0) = X_1$,
+$f(X_1) = X_2$, etc. Let's also define a number $\mu$, where $X_\mu$ is the
+first $X_n$ at which $X$ begins to repeat. Finally, we shall define a number
+$\lambda$, which is the length of the cycle in $X$. The cycle, therefore, is
+from $X_\mu$ to $X_{\mu + \lambda}$.
+
+It follows that, because the size of the cycle is $\lambda$, the cycle must
+contain a multiple of $\lambda$. If we have $X_k$ where $k$ is a multiple of
+$\lambda$, then $X_{2k}$ must be a multiple of $\lambda$ steps away from $X_k$.
+Because $\lambda$ is the length of the cycle, $X_{2k}$ must equal $X_k$.
+
+Now we have the information we need to design an algorithm that finds $\mu$ and
+$\lambda$. First, we need to find $X_k$, knowing that $X_k = X_{2k}$. Then, we
+need to calculate $\mu$ and $\lambda$, knowing that $\mu \leq k \leq \mu +
+\lambda$, and that $k$ is a multiple of $\lambda$. We know that $X_\mu$ is the
+first number in the sequence which is equal to $X_{\mu + \lambda}$ (or to
+$X_{\mu + k}$, because $k$ is a multiple of $\lambda$). To find it, we start
+from $X_0$ and $X_k$, then step each simultaneously until we find $X_i = X_{k +
+i}$ ($i = \mu$). If, while doing this, we also find a number $i$ such that $X_k
+= X_{k + i}$, then it follows that $\lambda$ is the smallest such $i$. If we do
+not find such an $i$ before we find $\mu$, then we know $\lambda$ is no smaller
+than $k$ because $k - \mu \leq \lambda$ and $k$ is a multiple of $\lambda$.
+Therefore, $\lambda = k$.
+
+* Example: Finding $\mu$ and $\lambda$
+#+BEGIN_SRC python :exports both :results output
+# define f(x)
+def f(x):
+    # Try changing 5, 16, and x_0 and see how mu and lambda change.
+    # The maximum possible lambda is attainable when the number in place of 16
+    # is a power of a prime number, x_0 is coprime with that number, and the
+    # number in place of 5 is 3 or 5 modulo 8.
+    return x * 5 % 16
+
+# assign x_k = x_1 and x_2k = x_2
+x_0 = 3
+x_k = f(x_0);
+x_2k = f(f(x_0));
+k = 1
+
+# find x_k = x_2k
+while x_k != x_2k:
+    x_k = f(x_k)
+    # step x_2k twice as fast as x_k so 2k is always twice k
+    x_2k = f(f(x_2k))
+    k = k + 1
+
+# find mu and lambda
+x_i = x_0
+x_kpi = x_k # kpi means k + i
+i = 0
+lam = None # lambda
+while x_i != x_kpi:
+    # step x_i, x_kpi, and i
+    x_i = f(x_i)
+    x_kpi = f(x_kpi)
+    i = i + 1
+
+    # if x_kpi = x_k, then we found lambda
+    if lam == None and x_kpi == x_k:
+        lam = i
+
+# if we didn't find lambda, then k must be lambda
+if lam == None:
+    lam = k
+
+print("mu = " + str(i))
+print("lambda = " + str(lam))
+#+END_SRC
+
+#+RESULTS:
+: mu = 0
+: lambda = 4
+
+* Improving Our Approach
+Our previous approach was constrained by the need to calculate $\mu$. For cycle
+detection problems, it is often unnecessary to find where a cycle starts. We can
+design a more efficient algorithm if we decide to only calculate lambda. We will
+design such an algorith here.
+
+The key insight behind our last algorithm was that if $k$ is a multiple of
+$\lambda$, then $X_k = X_{2k}$. Our new approach will also use the power of 2.
+
+The simplest way to find $\lambda$ is to take a number $X_k$ inside the cycle
+and start counting the subsequent values $X_n$. When we find a value $X_j =
+X_k$, we know that $\lambda = k - j$. The problem with this approach is that we
+have no way of knowing upfront whether $X_k$ is inside the cycle.
+
+We can get around this problem by occassionally changing $X_k$. If we do not
+find an $X_j = X_k$ after enough steps, we use $X_j$ as our new $X_k$ and work
+from there. However, this approach is still flawed. If we change $X_k$ faster
+than the cycle repeats, then we will never find $\lambda$. It is not enough to
+change $X_k$. We must also change how often we change $X_k$.
+
+How do we choose how often we change $X_k$? The obvious solution is to let the
+distance between two values $X_k$ grow geometrically. Because computers are
+base-2, we will also let our geometric sequence be base-2.
+
+Choosing 2 as our sequence base lets us exploit a useful property of binary
+numbers. If a number is 1 less than a power of 2, then bitwise AND-ing it with
+that power of 2 will produce 0 (7 AND 8 = 0, 15 AND 16 = 0, etc.). We can let
+our sequence of candidate values $X_k$ be the set of all numbers which are 1
+less than a power of 2, and we will get both an easy way to pick values $X_k$
+and the geometric growth property we desire (7 - 3 = 4, 15 - 7 = 8, etc.).
+
+This gives us an incredibly simple and elegant algorithm to implement. We keep
+stepping through values $X_n$, and any time we see a value $n$ such that $n$ AND
+$n + 1 = 0$, we set $X_k$ to $X_n$. If $X_n$ is ever equal to $X_k$, then
+$\lambda = n - k$. That's our cycle. Easy as pie.
+
+* Example: Finding Only $\lambda$
+#+BEGIN_SRC python :exports both :results output
+# define f(x)
+def f(x):
+    # Try changing 5, 16, and x_0 and see how lambda changes.
+    # The maximum possible lambda is attainable when the number in place of 16
+    # is a power of a prime number, x_0 is coprime with that number, and the
+    # number in place of 5 is 3 or 5 modulo 8.
+    return x * 5 % 16
+
+# set x_k = x_0, x_n = x_1
+x_0 = 3
+k = 0
+x_k = x_0
+n = 1
+x_n = f(x_0)
+
+# find lambda
+while x_n != x_k:
+    # x_n is one less than a power of 2 -> set k = n, x_k = x_n
+    if n & (n + 1) == 0:
+        k = n
+        x_k = x_n
+
+    # step n, x_n
+    x_n = f(x_n)
+    n = n + 1
+
+print("lambda = " + str(n - k))
+#+END_SRC
+
+#+RESULTS:
+: lambda = 4

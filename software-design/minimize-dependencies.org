@@ -1,0 +1,13 @@
+#+TITLE: Minimize Dependencies
+
+Each function, method, or class should know as little about things outside
+itself as possible. If possible, it should not know their names, their fields,
+their structure, or the order of the arguments they take. When it is necessary
+for a function, method, or class to know one of these things, that knowledge
+should be isolated into a single function or method.
+
+* Dependency Injection
+Classes commonly need to store instances of other classes in their fields. To
+avoid depending on the names of these other classes, do not instantiate them
+inside the dependent class. Instead, take instances of those classes as
+constructor arguments. This is called dependency injection.
